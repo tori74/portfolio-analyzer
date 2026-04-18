@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Анализ инвестиционного портфеля</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --primary:#1B4332;--accent:#2D6A4F;--light:#D8F3DC;
+  --bg:#F8FAF9;--card:#FFFFFF;--border:#DEE2E6;
+  --text:#212529;--muted:#6C757D;--red:#DC3545;
+  --radius:12px;--shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+body{font-family:'Manrope',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:0}
+.hero{background:linear-gradient(135deg,var(--primary) 0%,var(--accent) 100%);color:#fff;padding:48px 24px 56px;text-align:center;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;bottom:-30px;left:0;right:0;height:60px;background:var(--bg);border-radius:50% 50% 0 0}
+.hero h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;margin-bottom:8px}
+.hero p{font-size:15px;opacity:0.85;max-width:480px;margin:0 auto;white-space:nowrap}
+.container{max-width:560px;margin:-20px auto 40px;padding:0 20px;position:relative;z-index:1}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:32px 28px;margin-bottom:20px;border:1px solid var(--border)}
+.card-title{font-size:16px;font-weight:700;color:var(--primary);margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.card-title .icon{width:28px;height:28px;background:var(--light);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.hint{font-size:12px;color:var(--muted);margin-top:2px;margin-bottom:12px}
+input[type="text"],input[type="number"],textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:'Manrope',sans-serif;font-size:14px;color:var(--text);
+  transition:border-color 0.2s,box-shadow 0.2s;outline:none;background:#FAFBFC
+}
+input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(45,106,79,0.1)}
+.field{margin-bottom:18px}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.option-card{position:relative}
+.option-card input{position:absolute;opacity:0;width:0;height:0}
+.option-card .opt-label{
+  display:block;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-weight:500;cursor:pointer;text-align:center;
+  transition:all 0.2s;background:#FAFBFC;user-select:none
+}
+.option-card input:checked+.opt-label{border-color:var(--accent);background:var(--light);color:var(--primary);font-weight:600}
+.option-card .opt-label:hover{border-color:var(--accent);background:#F0F7F4}
+.toggle-wrap{display:flex;align-items:center;gap:10px;margin-bottom:18px;cursor:pointer}
+.toggle{width:44px;height:24px;background:var(--border);border-radius:12px;position:relative;transition:background 0.3s;flex-shrink:0}
+.toggle::after{content:'';width:18px;height:18px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:transform 0.3s;box-shadow:0 1px 3px rgba(0,0,0,0.15)}
+.toggle-wrap input{display:none}
+.toggle-wrap input:checked+.toggle{background:var(--accent)}
+.toggle-wrap input:checked+.toggle::after{transform:translateX(20px)}
+.toggle-text{font-size:14px;font-weight:500}
+.crypto-section{display:none;padding:16px;background:#F8FBF9;border-radius:8px;margin-bottom:18px;border:1px solid var(--light)}
+.crypto-section.visible{display:block;animation:slideDown 0.3s ease}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.crypto-options{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:14px}
+.file-upload{margin-bottom:14px}
+.file-upload .file-label{font-size:13px;font-weight:600;margin-bottom:6px}
+.file-drop{
+  border:2px dashed var(--border);border-radius:8px;padding:20px;text-align:center;
+  cursor:pointer;transition:all 0.2s;background:#FAFBFC;position:relative
+}
+.file-drop:hover{border-color:var(--accent);background:#F0F7F4}
+.file-drop.has-file{border-color:var(--accent);border-style:solid;background:var(--light)}
+.file-drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-drop .upload-icon{font-size:24px;margin-bottom:4px;display:block}
+.file-drop .upload-text{font-size:12px;color:var(--muted)}
+.file-drop .file-name{font-size:13px;color:var(--primary);font-weight:600}
+.quiz-link{font-size:12px;color:var(--accent);cursor:pointer;margin-top:-10px;margin-bottom:16px;display:inline-block}
+.quiz-link:hover{text-decoration:underline}
+.quiz-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center}
+.quiz-modal.visible{display:flex}
+.quiz-box{background:var(--card);border-radius:var(--radius);padding:32px;max-width:480px;width:90%;max-height:85vh;overflow-y:auto;position:relative}
+.quiz-box h3{font-size:18px;color:var(--primary);margin-bottom:16px}
+.quiz-close{position:absolute;top:12px;right:16px;font-size:24px;cursor:pointer;color:var(--muted);background:none;border:none}
+.quiz-q{margin-bottom:20px}
+.quiz-q p{font-size:14px;font-weight:600;margin-bottom:8px}
+.quiz-q label{display:block;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:13px;transition:all 0.2s}
+.quiz-q label:hover{border-color:var(--accent);background:#F0F7F4}
+.quiz-q input{display:none}
+.quiz-q label:has(input:checked){border-color:var(--accent);background:var(--light)}
+.quiz-result{display:none;text-align:center;padding:20px 0}
+.quiz-result h4{font-size:16px;color:var(--primary);margin-bottom:8px}
+.quiz-result p{font-size:14px;color:var(--muted);margin-bottom:16px}
+.quiz-btn{padding:12px 24px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin:4px}
+.quiz-btn.secondary{background:var(--card);color:var(--primary);border:1.5px solid var(--primary)}
+.consent{display:flex;align-items:flex-start;gap:8px;margin-bottom:20px}
+.consent input[type="checkbox"]{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--accent)}
+.consent-text{font-size:12px;color:var(--muted);line-height:1.4}
+.consent-text a{color:var(--accent)}
+.submit-btn{
+  width:100%;padding:16px;background:linear-gradient(135deg,var(--primary),var(--accent));
+  color:#fff;border:none;border-radius:8px;font-family:'Manrope',sans-serif;
+  font-size:16px;font-weight:700;cursor:pointer;transition:all 0.3s;letter-spacing:0.3px
+}
+.submit-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(27,67,50,0.3)}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none}
+.submit-btn .spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+.submit-btn.loading .btn-text{display:none}
+.submit-btn.loading .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.result-section{display:none;margin-top:20px}
+.result-section.visible{display:block;animation:slideDown 0.5s ease}
+.result-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;border:1px solid var(--border);text-align:center}
+.result-card .check{width:64px;height:64px;background:var(--light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.result-card h2{font-size:20px;color:var(--primary);margin-bottom:8px}
+.result-card p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.pdf-preview{width:100%;height:500px;border:1px solid var(--border);border-radius:8px;margin-bottom:16px;background:#f5f5f5}
+.btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.download-btn{padding:14px 28px;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;border:none;border-radius:8px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s;text-decoration:none;display:inline-block}
+.download-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(27,67,50,0.3)}
+.new-btn{padding:14px 28px;background:var(--card);color:var(--primary);border:1.5px solid var(--primary);border-radius:8px;font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.3s}
+.new-btn:hover{background:var(--light)}
+.progress-bar{display:none;margin-top:16px}
+.progress-bar.visible{display:block}
+.progress-track{width:100%;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:3px;width:0;animation:progress 60s ease-out forwards}
+@keyframes progress{0%{width:0}50%{width:60%}80%{width:80%}100%{width:92%}}
+.progress-text{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+.footer{text-align:center;padding:20px;font-size:12px;color:var(--muted)}
+@media(max-width:480px){
+  .hero{padding:36px 20px 44px}.hero h1{font-size:22px}.hero p{white-space:normal}
+  .card{padding:24px 20px}.options-grid{grid-template-columns:1fr}
+  .pdf-preview{height:350px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>📊 Анализ портфеля</h1>
+  <p>Загрузите данные и получите персональный разбор<br>с&nbsp;рекомендациями</p>
+</div>
+
+<div class="container">
+  <form id="portfolioForm" novalidate>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">👤</div> Личные данные</div>
+      <div class="field">
+        <label for="name">Имя</label>
+        <input type="text" id="name" name="name" placeholder="Как к Вам обращаться?">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">⚙️</div> Параметры</div>
+      <label>Риск-профиль</label>
+      <div class="options-grid" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:8px">
+        <div class="option-card"><input type="radio" name="risk_profile" id="rp1" value="conservative" required><label class="opt-label" for="rp1">Консервативный</label></div>
+        <div class="option-card"><input type="radio" name="risk_profile" id="rp2" value="moderate"><label class="opt-label" for="rp2">Умеренный</label></div>
+        <div class="option-card"><input type="radio" name="risk_profile" id="rp3" value="aggressive"><label class="opt-label" for="rp3">Агрессивный</label></div>
+      </div>
+      <span class="quiz-link" onclick="openQuiz()">Не знаете свой риск-профиль? Пройти тест →</span>
+
+      <label>Горизонт инвестирования</label>
+      <div class="options-grid">
+        <div class="option-card"><input type="radio" name="investment_period" id="hz1" value="3y" required><label class="opt-label" for="hz1">До 3 лет</label></div>
+        <div class="option-card"><input type="radio" name="investment_period" id="hz2" value="5y"><label class="opt-label" for="hz2">До 5 лет</label></div>
+        <div class="option-card"><input type="radio" name="investment_period" id="hz3" value="10y"><label class="opt-label" for="hz3">До 10 лет</label></div>
+        <div class="option-card"><input type="radio" name="investment_period" id="hz4" value="10y+"><label class="opt-label" for="hz4">Более 10 лет</label></div>
+      </div>
+
+      <div class="toggle-wrap" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="is_gov" name="is_gov_employee">
+        <div class="toggle"></div>
+        <div><div class="toggle-text">Я являюсь государственным служащим</div><div class="hint" style="margin:2px 0 0">Это влияет на допустимые инструменты</div></div>
+      </div>
+
+      <div class="toggle-wrap" onclick="this.querySelector('input').click()">
+        <input type="checkbox" id="has_crypto" name="has_crypto" onchange="toggleCrypto()">
+        <div class="toggle"></div>
+        <div class="toggle-text">В портфеле есть криптовалюта</div>
+      </div>
+
+      <div class="crypto-section" id="cryptoSection">
+        <label>Тип криптовалюты</label>
+        <div class="crypto-options">
+          <div class="option-card"><input type="radio" name="crypto_types" id="ct1" value="stablecoins"><label class="opt-label" for="ct1">Стейблкоины</label></div>
+          <div class="option-card"><input type="radio" name="crypto_types" id="ct2" value="altcoins"><label class="opt-label" for="ct2">Альткоины</label></div>
+          <div class="option-card"><input type="radio" name="crypto_types" id="ct3" value="BTC,ETH"><label class="opt-label" for="ct3">BTC, ETH</label></div>
+        </div>
+        <div class="field">
+          <label for="crypto_amount">Сумма в USD</label>
+          <input type="number" id="crypto_amount" name="crypto_amount" placeholder="Например: 5000">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="icon">📁</div> Данные портфеля</div>
+      <p class="hint" style="margin-bottom:16px">Загрузите файлы с данными Вашего портфеля</p>
+
+      <div class="file-upload">
+        <div class="file-label">Акции</div>
+        <div class="file-drop" id="drop_stocks" onclick="this.querySelector('input').click()">
+          <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'stocks')">
+          <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
+        </div>
+      </div>
+      <div class="file-upload">
+        <div class="file-label">Облигации</div>
+        <div class="file-drop" id="drop_bonds" onclick="this.querySelector('input').click()">
+          <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'bonds')">
+          <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
+        </div>
+      </div>
+      <div class="file-upload">
+        <div class="file-label">Денежный рынок</div>
+        <div class="file-drop" id="drop_money" onclick="this.querySelector('input').click()">
+          <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'money')">
+          <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="consent">
+      <input type="checkbox" id="consent" required>
+      <div class="consent-text">Я даю согласие на обработку персональных данных в соответствии с <a href="privacy.html" target="_blank">политикой конфиденциальности</a>. Данные используются исключительно для формирования анализа портфеля и не передаются третьим лицам.</div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="btn-text">Получить анализ →</span>
+      <div class="spinner"></div>
+    </button>
+
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText">Анализируем ваш портфель...</div>
+    </div>
+  </form>
+
+  <div class="result-section" id="resultSection">
+    <div class="result-card">
+      <div class="check">✅</div>
+      <h2>Анализ готов!</h2>
+      <p id="resultName">Ваш персональный отчёт</p>
+      <iframe class="pdf-preview" id="pdfPreview" src="" title="Предпросмотр PDF"></iframe>
+      <div class="btn-row">
+        <a class="download-btn" id="downloadBtn" href="#" download="Анализ_портфеля.pdf">⬇ Скачать PDF</a>
+        <button class="new-btn" onclick="resetForm()">↻ Новый анализ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Данный анализ носит информационный характер и не является индивидуальной инвестиционной рекомендацией.</div>
+
+<!-- Тест риск-профиля -->
+<div class="quiz-modal" id="quizModal">
+  <div class="quiz-box">
+    <button class="quiz-close" onclick="closeQuiz()">&times;</button>
+    <h3>🎯 Определите свой риск-профиль</h3>
+    <div id="quizQuestions">
+      <div class="quiz-q"><p>1. Ваш портфель упал на 20% за месяц. Ваши действия?</p>
+        <label><input type="radio" name="q1" value="1"><span> Продам всё — не могу терять деньги</span></label>
+        <label><input type="radio" name="q1" value="2"><span> Подожду восстановления, но нервничаю</span></label>
+        <label><input type="radio" name="q1" value="3"><span> Докуплю подешевевшие активы</span></label></div>
+      <div class="quiz-q"><p>2. Какую доходность вы ожидаете в год?</p>
+        <label><input type="radio" name="q2" value="1"><span> 5–10% — главное не потерять</span></label>
+        <label><input type="radio" name="q2" value="2"><span> 10–20% — готов к умеренным рискам</span></label>
+        <label><input type="radio" name="q2" value="3"><span> 20%+ — готов рисковать ради роста</span></label></div>
+      <div class="quiz-q"><p>3. Какой опыт инвестирования у вас есть?</p>
+        <label><input type="radio" name="q3" value="1"><span> Начинающий — менее года</span></label>
+        <label><input type="radio" name="q3" value="2"><span> Средний — 1–3 года</span></label>
+        <label><input type="radio" name="q3" value="3"><span> Опытный — более 3 лет</span></label></div>
+      <div class="quiz-q"><p>4. Какая доля сбережений идёт в инвестиции?</p>
+        <label><input type="radio" name="q4" value="1"><span> Менее 20% — основное на депозитах</span></label>
+        <label><input type="radio" name="q4" value="2"><span> 20–50% — диверсифицирую</span></label>
+        <label><input type="radio" name="q4" value="3"><span> Более 50% — всё в рынке</span></label></div>
+      <div class="quiz-q"><p>5. Как вы относитесь к волатильности?</p>
+        <label><input type="radio" name="q5" value="1"><span> Не переношу — хочу стабильности</span></label>
+        <label><input type="radio" name="q5" value="2"><span> Допускаю колебания ±15–20%</span></label>
+        <label><input type="radio" name="q5" value="3"><span> Колебания ±30–40% меня не пугают</span></label></div>
+    </div>
+    <div style="text-align:center;margin-top:16px" id="quizCalcBtn">
+      <button class="quiz-btn" onclick="calcQuiz()">Узнать результат</button>
+    </div>
+    <div class="quiz-result" id="quizResult">
+      <h4 id="quizProfileName"></h4>
+      <p id="quizProfileDesc"></p>
+      <button class="quiz-btn" onclick="applyQuiz()">Применить</button>
+      <button class="quiz-btn secondary" onclick="retryQuiz()">Пройти ещё раз</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL='https://6e7e47e4-99d5-48c9-8e62-61e41f704a27-00-2o6jy5i3ny8pu.janeway.replit.dev/analyze';
+const files={stocks:null,bonds:null,money:null};
+function toggleCrypto(){document.getElementById('cryptoSection').classList.toggle('visible',document.getElementById('has_crypto').checked)}
+function handleFile(input,type){
+  const file=input.files[0];if(!file)return;
+  const drop=document.getElementById('drop_'+type);
+  drop.classList.add('has-file');drop.querySelector('.upload-icon').textContent='✅';
+  drop.querySelector('.upload-text').style.display='none';
+  let n=drop.querySelector('.file-name');
+  if(!n){n=document.createElement('span');n.className='file-name';drop.appendChild(n)}
+  n.textContent=file.name;
+  const r=new FileReader();r.onload=()=>{files[type]=r.result.split(',')[1]};r.readAsDataURL(file);
+}
+function validate(){
+  if(!document.querySelector('input[name="risk_profile"]:checked')){alert('Выберите риск-профиль');return false}
+  if(!document.querySelector('input[name="investment_period"]:checked')){alert('Выберите горизонт инвестирования');return false}
+  if(!files.stocks&&!files.bonds&&!files.money){alert('Загрузите хотя бы один файл с данными портфеля');return false}
+  if(!document.getElementById('consent').checked){alert('Необходимо дать согласие на обработку персональных данных');return false}
+  return true;
+}
+
+let quizProfile='';
+function openQuiz(){document.getElementById('quizModal').classList.add('visible');retryQuiz()}
+function closeQuiz(){document.getElementById('quizModal').classList.remove('visible')}
+function retryQuiz(){
+  document.getElementById('quizQuestions').style.display='block';
+  document.getElementById('quizCalcBtn').style.display='block';
+  document.getElementById('quizResult').style.display='none';
+  for(let i=1;i<=5;i++){const radios=document.querySelectorAll(`input[name="q${i}"]`);radios.forEach(r=>r.checked=false)}
+}
+function calcQuiz(){
+  let score=0,answered=0;
+  for(let i=1;i<=5;i++){const a=document.querySelector(`input[name="q${i}"]:checked`);if(a){score+=parseInt(a.value);answered++}}
+  if(answered<5){alert('Ответьте на все вопросы');return}
+  const avg=score/5;
+  if(avg<=1.5){quizProfile='conservative';document.getElementById('quizProfileName').textContent='Ваш профиль: Консервативный';document.getElementById('quizProfileDesc').textContent='Вы предпочитаете стабильность и минимальные риски. Основа портфеля — облигации и фонды денежного рынка.'}
+  else if(avg<=2.3){quizProfile='moderate';document.getElementById('quizProfileName').textContent='Ваш профиль: Умеренный';document.getElementById('quizProfileDesc').textContent='Вы готовы к умеренным рискам ради большей доходности. Сбалансированный подход — акции и облигации.'}
+  else{quizProfile='aggressive';document.getElementById('quizProfileName').textContent='Ваш профиль: Агрессивный';document.getElementById('quizProfileDesc').textContent='Вы готовы к значительным колебаниям ради максимальной доходности. Основа — акции и активные стратегии.'}
+  document.getElementById('quizQuestions').style.display='none';
+  document.getElementById('quizCalcBtn').style.display='none';
+  document.getElementById('quizResult').style.display='block';
+}
+function applyQuiz(){
+  const map={conservative:'rp1',moderate:'rp2',aggressive:'rp3'};
+  document.getElementById(map[quizProfile]).checked=true;closeQuiz();
+}
+
+const progressMessages=['Анализируем ваш портфель...','Считаем доли и лимиты...','Проверяем диверсификацию...','Готовим диаграммы...','Формируем рекомендации...','Собираем PDF-отчёт...','Почти готово...'];
+document.getElementById('portfolioForm').addEventListener('submit',async(e)=>{
+  e.preventDefault();if(!validate())return;
+  const btn=document.getElementById('submitBtn'),bar=document.getElementById('progressBar'),txt=document.getElementById('progressText'),fill=document.getElementById('progressFill');
+  btn.classList.add('loading');btn.disabled=true;bar.classList.add('visible');
+  fill.style.animation='none';void fill.offsetHeight;fill.style.animation='progress 60s ease-out forwards';
+  let mi=0;const mt=setInterval(()=>{mi=(mi+1)%progressMessages.length;txt.textContent=progressMessages[mi]},5000);
+  const rp=document.querySelector('input[name="risk_profile"]:checked'),hz=document.querySelector('input[name="investment_period"]:checked'),ct=document.querySelector('input[name="crypto_types"]:checked');
+  const payload={name:document.getElementById('name').value||'',risk_profile:rp?rp.value:'',investment_period:hz?hz.value:'',is_gov_employee:document.getElementById('is_gov').checked,has_crypto:document.getElementById('has_crypto').checked,crypto_types:ct?ct.value:'',crypto_amount:document.getElementById('crypto_amount').value||'0',stocks_file:files.stocks||'',bonds_file:files.bonds||'',money_file:files.money||''};
+  try{
+    const resp=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    clearInterval(mt);
+    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||'Ошибка сервера')}
+    const data=await resp.json(),bc=atob(data.pdf_base64),ba=new Uint8Array(bc.length);
+    for(let i=0;i<bc.length;i++)ba[i]=bc.charCodeAt(i);
+    const blob=new Blob([ba],{type:'application/pdf'}),url=URL.createObjectURL(blob);
+    document.getElementById('pdfPreview').src=url;
+    document.getElementById('downloadBtn').href=url;
+    document.getElementById('downloadBtn').download=data.filename||'Анализ_портфеля.pdf';
+    const un=document.getElementById('name').value;
+    document.getElementById('resultName').textContent=un?`${un}, Ваш персональный отчёт готов!`:'Ваш персональный отчёт готов!';
+    document.getElementById('portfolioForm').style.display='none';
+    document.getElementById('resultSection').classList.add('visible');
+  }catch(err){clearInterval(mt);alert('Ошибка: '+err.message+'\n\nПопробуйте ещё раз.');btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible')}
+});
+function resetForm(){
+  document.getElementById('resultSection').classList.remove('visible');
+  const f=document.getElementById('portfolioForm');f.style.display='block';f.reset();
+  document.getElementById('submitBtn').classList.remove('loading');document.getElementById('submitBtn').disabled=false;
+  document.getElementById('progressBar').classList.remove('visible');document.getElementById('cryptoSection').classList.remove('visible');
+  files.stocks=files.bonds=files.money=null;
+  document.querySelectorAll('.file-drop').forEach(d=>{d.classList.remove('has-file');d.querySelector('.upload-icon').textContent='📄';d.querySelector('.upload-text').style.display='';const fn=d.querySelector('.file-name');if(fn)fn.remove()});
+}
+</script>
+</body>
+</html>
