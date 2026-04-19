@@ -288,14 +288,19 @@ const API_URL='https://analyzer.tori-hq.ru/analyze';
 const files={stocks:null,bonds:null,money:null};
 function toggleCrypto(){document.getElementById('cryptoSection').classList.toggle('visible',document.getElementById('has_crypto').checked)}
 function handleFile(input,type){
-  const file=input.files[0];if(!file)return;
+  const file=input.files[0];
+  if(!file){alert('Файл не выбран. Если он в iCloud — сначала скачайте его локально (в приложении Файлы: долгий тап → Переместить → На iPhone).');return;}
+  if(file.size===0){alert('Файл пустой или не скачан из iCloud. Откройте приложение Файлы, долгий тап на файле, выберите «Загрузить сейчас», затем повторите.');return;}
   const drop=document.getElementById('drop_'+type);
   drop.classList.add('has-file');drop.querySelector('.upload-icon').textContent='✅';
   drop.querySelector('.upload-text').style.display='none';
   let n=drop.querySelector('.file-name');
   if(!n){n=document.createElement('span');n.className='file-name';drop.appendChild(n)}
-  n.textContent=file.name;
-  const r=new FileReader();r.onload=()=>{files[type]=r.result.split(',')[1]};r.readAsDataURL(file);
+  n.textContent=file.name+' ('+Math.round(file.size/1024*10)/10+' КБ)';
+  const r=new FileReader();
+  r.onload=()=>{files[type]=r.result.split(',')[1]};
+  r.onerror=()=>{alert('Ошибка чтения файла '+file.name+'. Попробуйте сохранить его локально (не iCloud) и повторить.');};
+  r.readAsDataURL(file);
 }
 function validate(){
   if(!document.querySelector('input[name="risk_profile"]:checked')){alert('Выберите риск-профиль');return false}
