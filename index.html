@@ -191,24 +191,24 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(
 
       <div class="file-upload">
         <div class="file-label">Акции</div>
-        <div class="file-drop" id="drop_stocks" onclick="this.querySelector('input').click()">
+        <label class="file-drop" id="drop_stocks">
           <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'stocks')">
           <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
-        </div>
+        </label>
       </div>
       <div class="file-upload">
         <div class="file-label">Облигации</div>
-        <div class="file-drop" id="drop_bonds" onclick="this.querySelector('input').click()">
+        <label class="file-drop" id="drop_bonds">
           <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'bonds')">
           <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
-        </div>
+        </label>
       </div>
       <div class="file-upload">
         <div class="file-label">Денежный рынок</div>
-        <div class="file-drop" id="drop_money" onclick="this.querySelector('input').click()">
+        <label class="file-drop" id="drop_money">
           <input type="file" accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.pdf" onchange="handleFile(this,'money')">
           <span class="upload-icon">📄</span><span class="upload-text">Нажмите или перетащите файл</span>
-        </div>
+        </label>
       </div>
     </div>
 
