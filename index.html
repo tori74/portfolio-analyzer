@@ -221,6 +221,7 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(
       <span class="btn-text">Получить анализ →</span>
       <div class="spinner"></div>
     </button>
+    <p class="hint" style="text-align:center;margin-top:10px">ℹ️ Если отчёт не формируется — попробуйте отключить VPN.</p>
 
     <div class="progress-bar" id="progressBar">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -359,7 +360,7 @@ document.getElementById('portfolioForm').addEventListener('submit',async(e)=>{
     document.getElementById('resultName').textContent=un?`${un}, Ваш персональный отчёт готов!`:'Ваш персональный отчёт готов!';
     document.getElementById('portfolioForm').style.display='none';
     document.getElementById('resultSection').classList.add('visible');
-  }catch(err){clearInterval(mt);alert('Ошибка: '+err.message+'\n\nПопробуйте ещё раз.');btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible')}
+  }catch(err){clearInterval(mt);alert('Не удалось отправить форму.\n\nЕсли у вас включён VPN — отключите его и попробуйте снова.');btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible')}
 });
 function resetForm(){
   document.getElementById('resultSection').classList.remove('visible');
