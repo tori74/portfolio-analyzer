@@ -346,12 +346,24 @@ document.getElementById('portfolioForm').addEventListener('submit',async(e)=>{
   let mi=0;const mt=setInterval(()=>{mi=(mi+1)%progressMessages.length;txt.textContent=progressMessages[mi]},5000);
   const rp=document.querySelector('input[name="risk_profile"]:checked'),hz=document.querySelector('input[name="investment_period"]:checked'),ct=document.querySelector('input[name="crypto_types"]:checked');
   const payload={name:document.getElementById('name').value||'',risk_profile:rp?rp.value:'',investment_period:hz?hz.value:'',is_gov_employee:document.getElementById('is_gov').checked,has_crypto:document.getElementById('has_crypto').checked,crypto_types:ct?ct.value:'',crypto_amount:document.getElementById('crypto_amount').value||'0',stocks_file:files.stocks||'',bonds_file:files.bonds||'',money_file:files.money||''};
+  let stage='network',respBodyPreview='';
   try{
     const resp=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
     clearInterval(mt);
-    if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err.error||'Ошибка сервера')}
-    const data=await resp.json(),bc=atob(data.pdf_base64),ba=new Uint8Array(bc.length);
+    stage='read-body';
+    const bodyText=await resp.text();
+    respBodyPreview=bodyText.slice(0,200);
+    if(!resp.ok){
+      let serverMsg='';try{serverMsg=JSON.parse(bodyText).error||''}catch(_){}
+      throw new Error(`HTTP ${resp.status}${serverMsg?`: ${serverMsg}`:''}`);
+    }
+    stage='parse-json';
+    const data=JSON.parse(bodyText);
+    if(!data.pdf_base64)throw new Error('Сервер ответил 200, но в JSON нет pdf_base64. Это похоже на блокировку CDN или подмену ответа провайдером.');
+    stage='decode-pdf';
+    const bc=atob(data.pdf_base64),ba=new Uint8Array(bc.length);
     for(let i=0;i<bc.length;i++)ba[i]=bc.charCodeAt(i);
+    stage='render';
     const blob=new Blob([ba],{type:'application/pdf'}),url=URL.createObjectURL(blob);
     document.getElementById('pdfPreview').src=url;
     document.getElementById('downloadBtn').href=url;
@@ -360,7 +372,13 @@ document.getElementById('portfolioForm').addEventListener('submit',async(e)=>{
     document.getElementById('resultName').textContent=un?`${un}, Ваш персональный отчёт готов!`:'Ваш персональный отчёт готов!';
     document.getElementById('portfolioForm').style.display='none';
     document.getElementById('resultSection').classList.add('visible');
-  }catch(err){clearInterval(mt);alert('Не удалось отправить форму.\n\nЕсли у вас включён VPN — отключите его и попробуйте снова.');btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible')}
+  }catch(err){
+    clearInterval(mt);
+    console.error('[analyzer] stage=%s error=%o body-preview=%o',stage,err,respBodyPreview);
+    const msg=`Не удалось получить отчёт.\n\nЭтап: ${stage}\nОшибка: ${err.message||err}`+(respBodyPreview?`\nОтвет сервера (начало): ${respBodyPreview}`:'')+`\n\nПришли этот текст автору сервиса для диагностики.`;
+    alert(msg);
+    btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible');
+  }
 });
 function resetForm(){
   document.getElementById('resultSection').classList.remove('visible');
