@@ -221,7 +221,7 @@ input:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(
       <span class="btn-text">Получить анализ →</span>
       <div class="spinner"></div>
     </button>
-    <p class="hint" style="text-align:center;margin-top:10px">ℹ️ Если отчёт не формируется — попробуйте отключить VPN.</p>
+    <p class="hint" style="text-align:center;margin-top:10px">⏳ Анализ занимает до 30 секунд.</p>
 
     <div class="progress-bar" id="progressBar">
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -375,8 +375,7 @@ document.getElementById('portfolioForm').addEventListener('submit',async(e)=>{
   }catch(err){
     clearInterval(mt);
     console.error('[analyzer] stage=%s error=%o body-preview=%o',stage,err,respBodyPreview);
-    const msg=`Не удалось получить отчёт.\n\nЭтап: ${stage}\nОшибка: ${err.message||err}`+(respBodyPreview?`\nОтвет сервера (начало): ${respBodyPreview}`:'')+`\n\nПришли этот текст автору сервиса для диагностики.`;
-    alert(msg);
+    alert('Что-то пошло не так. Попробуйте ещё раз через минуту.');
     btn.classList.remove('loading');btn.disabled=false;bar.classList.remove('visible');
   }
 });
