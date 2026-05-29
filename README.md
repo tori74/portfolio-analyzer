@@ -24,7 +24,7 @@ Frontend публичен — его можно открыть и посмотр
 
 ## Автор
 
-[tori74](https://github.com/tori74) — разработка через Claude Code.
+[tori74](https://github.com/tori74) — AI-консультант в рабочей практике, разработка через Claude Code.
 
 ## Лицензия
 
